@@ -18,6 +18,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -63,21 +65,30 @@ public class UserRestController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User user) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
         Optional<User> userOptional = userService.findByUsername(user.getUsername());
         if (userOptional.isPresent()) {
             String password = user.getPassword();
             User temp = userOptional.get();
             if (passwordEncoder.matches(password, temp.getPassword())) {
                 String token = jwtUtils.generateToken(user.getUsername());
-                return ResponseEntity.ok(token);
+                Map<String, Object> response = new HashMap<>();
+                response.put("token", token);
+                response.put("username", temp.getUsername());
+                response.put("roles", temp.getRoles()); // Assuming getRoles() returns List<String>
+                return ResponseEntity.status(HttpStatus.OK).body(response);
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect password");
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Incorrect password");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
             }
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "User not found");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
-    }
+
+}
 
     @DeleteMapping("/user/{username}")
     public void deleteUser(@PathVariable String username) {
