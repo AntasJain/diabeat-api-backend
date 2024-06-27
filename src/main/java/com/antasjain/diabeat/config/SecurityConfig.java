@@ -17,7 +17,6 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 import javax.sql.DataSource;
 
 @Configuration
-@EnableWebSecurity
 public class SecurityConfig {
     private final DataSource dataSource;
 
@@ -43,17 +42,19 @@ public class SecurityConfig {
         return new HttpSessionEventPublisher();
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(configurer -> configurer
-                // Secure recipe endpoints based on roles
-                .requestMatchers(HttpMethod.GET, "/recipes/**").hasAnyRole( "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/recipes").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/recipes/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/recipes/**").hasRole("ADMIN").anyRequest().authenticated());
-
-        http.httpBasic(Customizer.withDefaults());
-        http.csrf(csrf ->csrf.disable());
-        return http.build();
-    }
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http.authorizeHttpRequests(configurer -> configurer
+//                .requestMatchers(HttpMethod.POST,"/login").permitAll()
+//                .requestMatchers(HttpMethod.POST,"/user").permitAll()
+//                // Secure recipe endpoints based on roles
+//                .requestMatchers(HttpMethod.GET, "/recipes/**").hasAnyRole( "ADMIN","USER")
+//                .requestMatchers(HttpMethod.POST, "/recipes").hasRole("ADMIN")
+//                .requestMatchers(HttpMethod.PUT, "/recipes/**").hasRole("ADMIN")
+//                .requestMatchers(HttpMethod.DELETE, "/recipes/**").hasRole("ADMIN").anyRequest().authenticated());
+//
+//        http.httpBasic(Customizer.withDefaults());
+//        http.csrf(csrf ->csrf.disable());
+//        return http.build();
+//    }
 }

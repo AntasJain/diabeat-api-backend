@@ -1,5 +1,6 @@
 package com.antasjain.diabeat.config;
 
+import com.antasjain.diabeat.service.TokenBlacklistService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -11,6 +12,7 @@ import java.util.Date;
 
 @Component
 public class JwtUtils {
+    private TokenBlacklistService tokenBlacklistService;
 
     @Value("${jwt.secret}")
     private String secret;
@@ -18,9 +20,10 @@ public class JwtUtils {
     @Value("${jwt.expirationMs}")
     private int expirationMs;
     @Autowired
-    public JwtUtils(@Value("${jwt.secret}") String secret, @Value("${jwt.expirationMs}") int expirationMs) {
+    public JwtUtils(@Value("${jwt.secret}") String secret, @Value("${jwt.expirationMs}") int expirationMs, TokenBlacklistService tokenBlacklistService) {
         this.secret = secret;
         this.expirationMs = expirationMs;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
     // Generate JWT token
     public String generateToken(String username) {
@@ -50,4 +53,13 @@ public class JwtUtils {
         Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
         return claims.getSubject();
     }
+    private boolean isTokenExpired(String token) {
+        Date expiration = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getExpiration();
+        return expiration.before(new Date());
+    }
+
+    public void blacklistToken(String token) {
+        tokenBlacklistService.blacklistToken(token);
+    }
+
 }

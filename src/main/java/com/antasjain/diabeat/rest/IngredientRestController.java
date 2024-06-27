@@ -23,6 +23,11 @@ public class IngredientRestController {
         this.recipeService = recipeService;
     }
 
+    @GetMapping("/all")
+    public List<Ingredient> getAllIngredients(){
+        return ingredientService.getAllIngredients();
+    }
+
     @GetMapping("/{name}/recipes")
     public List<Recipe> getRecipesByIngredient(@PathVariable String name) {
         Ingredient ingredient = ingredientService.getIngredientByName(name)

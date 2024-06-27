@@ -1,6 +1,7 @@
 package com.antasjain.diabeat.rest;
 
 import com.antasjain.diabeat.config.JwtUtils;
+import com.antasjain.diabeat.entity.LogoutRequest;
 import com.antasjain.diabeat.entity.Role;
 import com.antasjain.diabeat.entity.User;
 import com.antasjain.diabeat.exceptions.ResourceNotFoundException;
@@ -38,16 +39,18 @@ public class UserRestController {
     }
 
     @PostMapping("/user")
-    public User addUser(@RequestBody User user) {
-        if(userService.existsByUsername(user.getUsername()))
-        {
-            throw new ResourceNotFoundException("Username already taken " + user.getUsername());
+    public ResponseEntity<Map<String, String>> addUser(@RequestBody User user) {
+        if (userService.existsByUsername(user.getUsername())) {
+            throw new ResourceNotFoundException("Username already taken: " + user.getUsername());
         }
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
-        Role role = new Role(user.getUsername(),"ROLE_USER");
+        Role role = new Role(user.getUsername(), "ROLE_USER");
         user.add(role);
-        return userService.save(user);
+        userService.save(user);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "User created successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     @PostMapping("/admin")
     public User addUserAdmin(@RequestBody User user) {
@@ -98,12 +101,24 @@ public class UserRestController {
         userService.deleteByUsername(username);
     }
 
-    @GetMapping("/logout")
-    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            new SecurityContextLogoutHandler().logout(request, response, auth);
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestBody LogoutRequest logoutRequest, HttpServletRequest request, HttpServletResponse response) {
+        String token = logoutRequest.getToken();
+        if (token != null && !token.isEmpty()) {
+            if (jwtUtils.validateToken(token)) {
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                if (auth != null) {
+                    new SecurityContextLogoutHandler().logout(request, response, auth);
+                }
+                jwtUtils.blacklistToken(token);
+                return ResponseEntity.ok("Logout successful");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token is required");
         }
-        return ResponseEntity.ok("Logout successful");
     }
+
+
 }
