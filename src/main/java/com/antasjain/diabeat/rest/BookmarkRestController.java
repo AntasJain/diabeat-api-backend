@@ -37,4 +37,9 @@ public class BookmarkRestController {
             String username){
         return bookmarkService.getBookmarksByUsername(username);
     }
+
+    @GetMapping("/exists")
+    public boolean bookmarkExists(@RequestParam String username, @RequestParam int recipeId){
+        return bookmarkService.existsByUsernameAndRecipeId(username,recipeId);
+    }
 }
