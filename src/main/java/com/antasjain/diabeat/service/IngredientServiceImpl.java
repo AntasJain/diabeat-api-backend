@@ -20,7 +20,7 @@ public class IngredientServiceImpl implements IngredientService {
 
     @Override
     public List<Ingredient> getAllIngredients() {
-        return ingredientDAO.findAll();
+        return ingredientDAO.findAllByOrderByNameAsc();
     }
 
     @Override

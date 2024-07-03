@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface IngredientDAO extends JpaRepository<Ingredient,Integer> {
     Optional<Ingredient> findByName(String name);
 
+    List<Ingredient> findAllByOrderByNameAsc();
+
 
 
 }
